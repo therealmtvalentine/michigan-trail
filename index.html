@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Michigan Trail - Family Road Trip</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="title-screen" class="screen active">
+            <h1>The Michigan Trail</h1>
+            <p>A family road trip of chaos and questionable decisions</p>
+            <button id="start-game">Start Road Trip</button>
+        </div>
+
+        <div id="setup-screen" class="screen">
+            <h1>Prepare for the Trip</h1>
+            <p>You have <span id="credits-remaining">10</span> credits to allocate</p>
+            <p style="font-size: 0.9em; color: #d4b896;">Balance your resources wisely - each level costs 1 credit</p>
+            
+            <div class="allocation-container">
+                <div class="allocation-item">
+                    <h3>💰 Starting Money</h3>
+                    <p class="allocation-desc">More money = more options on the road</p>
+                    <div class="slider-container">
+                        <span>1</span>
+                        <input type="range" id="money-slider" min="1" max="5" value="3" class="allocation-slider">
+                        <span>5</span>
+                    </div>
+                    <p class="allocation-value">Level: <span id="money-level">3</span> ($<span id="money-amount">500</span>)</p>
+                </div>
+                
+                <div class="allocation-item">
+                    <h3>🍔 Starting Snacks</h3>
+                    <p class="allocation-desc">More snacks = happier family</p>
+                    <div class="slider-container">
+                        <span>1</span>
+                        <input type="range" id="snacks-slider" min="1" max="5" value="3" class="allocation-slider">
+                        <span>5</span>
+                    </div>
+                    <p class="allocation-value">Level: <span id="snacks-level">3</span> (<span id="snacks-amount">100</span> snacks)</p>
+                </div>
+                
+                <div class="allocation-item">
+                    <h3>😊 Starting Morale</h3>
+                    <p class="allocation-desc">Higher morale = better trip start</p>
+                    <div class="slider-container">
+                        <span>1</span>
+                        <input type="range" id="morale-slider" min="1" max="5" value="3" class="allocation-slider">
+                        <span>5</span>
+                    </div>
+                    <p class="allocation-value">Level: <span id="morale-level">3</span> (<span id="morale-amount">90</span> morale)</p>
+                </div>
+            </div>
+            
+            <div id="allocation-error" style="color: #ff4444; margin: 20px 0; display: none;">
+                You've used too many credits! Reduce your allocations.
+            </div>
+            
+            <button id="begin-trip" disabled>Begin Trip</button>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="stats-panel">
+                <div class="stat">
+                    <span class="stat-label">Date:</span>
+                    <span id="current-date">March 1, 2026</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Distance:</span>
+                    <span id="distance">0 miles</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Money:</span>
+                    <span id="money">$400</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Snacks:</span>
+                    <span id="food">100 snacks</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Your Morale:</span>
+                    <span id="health">Happy</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Mom:</span>
+                    <span id="morale-mom">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Boy:</span>
+                    <span id="morale-boy">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Girl:</span>
+                    <span id="morale-girl">100</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Gas Tank:</span>
+                    <div id="gas-bar-container" style="width: 100%; height: 20px; background: #333; border: 2px solid #666; margin-top: 5px;">
+                        <div id="gas-bar-fill" style="width: 80%; height: 100%; background: linear-gradient(to right, #44ff44, #88ff88); transition: width 0.3s;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <canvas id="game-canvas" width="800" height="400"></canvas>
+
+            <div id="action-panel">
+                <button id="continue-trail">Keep driving</button>
+                <div id="city-actions" style="display: none;">
+                    <button id="city-snacks-btn">Get snacks</button>
+                    <button id="city-gas-btn">Fill up gas</button>
+                </div>
+            </div>
+
+            <div id="message-log">
+                <p>Loading up the minivan in Houston, Texas...</p>
+            </div>
+        </div>
+
+        <div id="event-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="event-title">Event</h2>
+                <p id="event-description"></p>
+                <div id="event-choices"></div>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen">
+            <h1 id="game-over-title">Game Over</h1>
+            <p id="game-over-message"></p>
+            <button id="restart-game">Play Again</button>
+        </div>
+    </div>
+
+    <script src="js/gameState.js"></script>
+    <script src="js/eventSystem.js"></script>
+    <script src="js/cityEvents.js"></script>
+    <script src="js/locations.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

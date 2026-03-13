@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Button Test</title>
+</head>
+<body>
+    <button id="test-btn">Click Me</button>
+    <div id="output"></div>
+    
+    <script>
+        let clickCount = 0;
+        document.getElementById('test-btn').addEventListener('click', () => {
+            clickCount++;
+            document.getElementById('output').innerHTML += `<p>Click ${clickCount}</p>`;
+            console.log('Button clicked:', clickCount);
+        });
+    </script>
+</body>
+</html>

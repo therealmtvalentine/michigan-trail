@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test</title>
+</head>
+<body>
+    <h1>JavaScript Test</h1>
+    <button id="test-btn">Click Me</button>
+    <div id="output"></div>
+    
+    <script src="js/gameState.js"></script>
+    <script src="js/eventSystem.js"></script>
+    <script src="js/locations.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.getElementById('test-btn').addEventListener('click', () => {
+            document.getElementById('output').textContent = 'Button works! GameState exists: ' + (typeof GameState !== 'undefined');
+        });
+        
+        window.addEventListener('load', () => {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Page loaded<br>';
+            output.innerHTML += 'GameState: ' + (typeof GameState !== 'undefined') + '<br>';
+            output.innerHTML += 'EventSystem: ' + (typeof EventSystem !== 'undefined') + '<br>';
+            output.innerHTML += 'Locations: ' + (typeof Locations !== 'undefined') + '<br>';
+            output.innerHTML += 'Renderer: ' + (typeof Renderer !== 'undefined') + '<br>';
+            output.innerHTML += 'UI: ' + (typeof UI !== 'undefined') + '<br>';
+        });
+    </script>
+</body>
+</html>
