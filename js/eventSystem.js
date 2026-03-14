@@ -9,6 +9,7 @@ const EventSystem = {
                 description: 'You hear a loud POP! The car has a flat tire.',
                 condition: () => true,
                 weight: 15,
+                onTrigger: () => { Badges.unlock('blam'); },
                 choices: [
                     {
                         text: 'Use spare tire [No morale change]',
@@ -42,38 +43,223 @@ const EventSystem = {
                 id: 'are_we_there_yet',
                 title: '"Are We There Yet?"',
                 description: 'The kids are getting restless. "Are we there yet? Are we there yet?"',
-                condition: () => GameState.party.some(p => p.alive && p.morale < 60),
+                condition: () => GameState.party.some(p => (p.role === 'son' || p.role === 'daughter') && p.alive),
                 weight: 20,
                 choices: [
                     {
-                        text: 'Stop for ice cream ($20) [😊 Morale +15]',
+                        text: 'Stop for ice cream ($20) [😊 Varies by person]',
                         condition: () => GameState.money >= 20,
                         effect: () => {
                             GameState.money -= 20;
-                            GameState.party.forEach(p => { if (p.alive) p.morale += 15; });
-                            return 'Ice cream fixes everything! Morale restored.';
+                            let messages = [];
+                            GameState.party.forEach(p => { 
+                                if (p.alive) {
+                                    const bonus = Math.round(15 * (p.personality?.foodBonus || 1.0));
+                                    p.morale += bonus;
+                                    if (bonus >= 18) messages.push(`${p.name} loved it!`);
+                                }
+                            });
+                            return 'Ice cream stop! ' + (messages.length > 0 ? messages.join(' ') : 'Everyone enjoyed it.');
                         }
                     },
                     {
-                        text: 'Play car games [😊 Morale +10 or 😠 -5]',
+                        text: 'Play car games [😊😠 Kids may disagree]',
                         condition: () => true,
                         effect: () => {
-                            const success = Math.random() > 0.5;
-                            if (success) {
-                                GameState.party.forEach(p => { if (p.alive) p.morale += 10; });
-                                return 'I Spy and the License Plate Game kept everyone entertained!';
+                            let result = '';
+                            const boy = GameState.party.find(p => p.role === 'son');
+                            const girl = GameState.party.find(p => p.role === 'daughter');
+                            
+                            if (Math.random() > 0.4) {
+                                if (boy && boy.alive) boy.morale += Math.round(15 * boy.personality.gameBonus);
+                                if (girl && girl.alive) girl.morale -= 8;
+                                GameState.party.forEach(p => { 
+                                    if (p.alive && p.role === 'husband') p.morale += 5;
+                                    if (p.alive && p.role === 'wife') p.morale -= 3;
+                                });
+                                result = 'Boy won the game! Girl is upset about losing.';
                             } else {
-                                GameState.party.forEach(p => { if (p.alive) p.morale -= 5; });
-                                return 'The games turned into arguments. Not helpful.';
+                                if (girl && girl.alive) girl.morale += Math.round(15 * girl.personality.gameBonus);
+                                if (boy && boy.alive) boy.morale -= 8;
+                                GameState.party.forEach(p => { 
+                                    if (p.alive && p.role === 'husband') p.morale += 5;
+                                    if (p.alive && p.role === 'wife') p.morale -= 3;
+                                });
+                                result = 'Girl won the game! Boy is pouting now.';
                             }
+                            return result;
                         }
                     },
                     {
-                        text: 'Turn up the music and ignore them [😠 Morale -5]',
+                        text: 'Turn up the music [😊😠 Mixed reactions]',
                         condition: () => true,
                         effect: () => {
-                            GameState.party.forEach(p => { if (p.alive) p.morale -= 5; });
-                            return 'Everyone is grumpy now. Great parenting.';
+                            let messages = [];
+                            GameState.party.forEach(p => { 
+                                if (p.alive) {
+                                    const change = Math.round(10 * (p.personality?.musicBonus || 1.0)) - 5;
+                                    p.morale = Math.max(0, p.morale + change);
+                                    if (change > 5) messages.push(`${p.name} loves this song!`);
+                                    else if (change < 0) messages.push(`${p.name} hates this music.`);
+                                }
+                            });
+                            return messages.join(' ') || 'Mixed reactions to the music.';
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'switch_batteries',
+                title: 'Switch Batteries Dead!',
+                description: 'The Nintendo Switch just died. "Noooo! I was about to beat the boss!" But wait - whose turn was it anyway?',
+                condition: () => GameState.party.some(p => (p.role === 'son' || p.role === 'daughter') && p.alive),
+                weight: 15,
+                choices: [
+                    {
+                        text: 'Buy new batteries at next stop ($10)',
+                        condition: () => GameState.money >= 10,
+                        effect: () => {
+                            GameState.money -= 10;
+                            const boy = GameState.party.find(p => p.role === 'son');
+                            const girl = GameState.party.find(p => p.role === 'daughter');
+                            
+                            if (boy && boy.alive) boy.morale += Math.round(20 * boy.personality.gameBonus);
+                            if (girl && girl.alive) girl.morale += Math.round(12 * girl.personality.gameBonus);
+                            
+                            return 'Batteries purchased! Boy immediately grabs the Switch. Girl rolls her eyes.';
+                        }
+                    },
+                    {
+                        text: 'Tell them to share a book instead',
+                        condition: () => true,
+                        effect: () => {
+                            const boy = GameState.party.find(p => p.role === 'son');
+                            const girl = GameState.party.find(p => p.role === 'daughter');
+                            
+                            if (boy && boy.alive) boy.morale -= 18;
+                            if (girl && girl.alive) girl.morale -= 5;
+                            
+                            return '"This is so boring!" Boy is furious. Girl doesn\'t mind as much.';
+                        }
+                    },
+                    {
+                        text: 'Let them fight over whose fault it is',
+                        condition: () => true,
+                        effect: () => {
+                            const boy = GameState.party.find(p => p.role === 'son');
+                            const girl = GameState.party.find(p => p.role === 'daughter');
+                            const mom = GameState.party.find(p => p.role === 'wife');
+                            
+                            if (boy && boy.alive) boy.morale -= 10;
+                            if (girl && girl.alive) girl.morale -= 12;
+                            if (mom && mom.alive) mom.morale -= 8;
+                            
+                            return '"YOU used all the battery!" "No YOU did!" Mom is getting a headache.';
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'tire_blowout',
+                title: 'Tire Blowout!',
+                description: 'BANG! A tire just blew out on the highway!',
+                condition: () => true,
+                weight: 12,
+                onTrigger: () => { Badges.unlock('blam'); },
+                choices: [
+                    {
+                        text: 'Use spare tire ($0) [😐 Neutral]',
+                        condition: () => GameState.carParts > 0,
+                        effect: () => {
+                            GameState.carParts--;
+                            return 'You changed the tire yourself. Back on the road!';
+                        }
+                    },
+                    {
+                        text: 'Call tow truck ($85) [😠 Morale -10]',
+                        condition: () => GameState.money >= 85,
+                        effect: () => {
+                            GameState.money -= 85;
+                            GameState.party.forEach(p => { if (p.alive) p.morale -= 10; });
+                            return 'Expensive and time-consuming. Everyone is frustrated.';
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'car_overheats',
+                title: 'Engine Overheating!',
+                description: 'The temperature gauge is in the red! Smoke is coming from the hood!',
+                condition: () => true,
+                weight: 10,
+                onTrigger: () => { Badges.unlock('muy_caliente'); },
+                choices: [
+                    {
+                        text: 'Pull over and wait to cool down [😠 Morale -8]',
+                        condition: () => true,
+                        effect: () => {
+                            GameState.party.forEach(p => { if (p.alive) p.morale -= 8; });
+                            return 'Waited an hour on the side of the road. Hot and annoyed.';
+                        }
+                    },
+                    {
+                        text: 'Buy coolant at mechanic ($45) [😐 Neutral]',
+                        condition: () => GameState.money >= 45,
+                        effect: () => {
+                            GameState.money -= 45;
+                            GameState.carHealth = Math.min(100, GameState.carHealth + 10);
+                            return 'Mechanic topped off the coolant. Should be fine now.';
+                        }
+                    }
+                ]
+            },
+            {
+                id: 'spilled_drink',
+                title: 'Drink Spilled!',
+                description: '"Oops!" Someone knocked over their drink. "It wasn\'t me!" "Yes it was!"',
+                condition: () => GameState.party.some(p => (p.role === 'son' || p.role === 'daughter') && p.alive),
+                weight: 20,
+                choices: [
+                    {
+                        text: 'Blame the Boy and clean up',
+                        condition: () => true,
+                        effect: () => {
+                            const boy = GameState.party.find(p => p.role === 'son');
+                            const girl = GameState.party.find(p => p.role === 'daughter');
+                            const dad = GameState.party.find(p => p.role === 'husband');
+                            
+                            if (boy && boy.alive) boy.morale -= 15;
+                            if (girl && girl.alive) girl.morale += 5;
+                            if (dad && dad.alive) dad.morale -= 5;
+                            
+                            return 'Boy is upset about being blamed. Girl smirks.';
+                        }
+                    },
+                    {
+                        text: 'Blame the Girl and clean up',
+                        condition: () => true,
+                        effect: () => {
+                            const boy = GameState.party.find(p => p.role === 'son');
+                            const girl = GameState.party.find(p => p.role === 'daughter');
+                            const mom = GameState.party.find(p => p.role === 'wife');
+                            
+                            if (girl && girl.alive) girl.morale -= 18;
+                            if (boy && boy.alive) boy.morale += 3;
+                            if (mom && mom.alive) mom.morale -= 5;
+                            
+                            return 'Girl is crying. "It really wasn\'t me!" Boy looks guilty now.';
+                        }
+                    },
+                    {
+                        text: 'Just clean it up, no blame',
+                        condition: () => true,
+                        effect: () => {
+                            GameState.party.forEach(p => { 
+                                if (p.alive) {
+                                    p.morale -= Math.round(5 / (p.personality?.patience || 1.0));
+                                }
+                            });
+                            return 'Cleaned up without drama. Dad sighs heavily.';
                         }
                     }
                 ]
@@ -124,18 +310,60 @@ const EventSystem = {
                 ]
             },
             {
+                id: 'construction_zone',
+                title: 'Construction Zone!',
+                description: '🚧 Road work ahead! Orange cones everywhere and workers waving flags.',
+                condition: () => true,
+                weight: 14,
+                choices: [
+                    {
+                        text: 'Slow down and wait [😠 -8 morale, slower progress]',
+                        condition: () => true,
+                        effect: () => {
+                            GameState.hasConstruction = true;
+                            GameState.party.forEach(p => { 
+                                if (p.alive) {
+                                    const variation = Math.floor(Math.random() * 4) - 2;
+                                    p.morale -= 8 + variation;
+                                }
+                            });
+                            return 'Crawling through the construction zone. This will slow things down.';
+                        }
+                    },
+                    {
+                        text: 'Find an alternate route [😐 May help or hurt]',
+                        condition: () => true,
+                        effect: () => {
+                            if (Math.random() > 0.5) {
+                                GameState.party.forEach(p => { if (p.alive) p.morale += 5; });
+                                return 'Found a good alternate route! Avoided the construction.';
+                            } else {
+                                GameState.distance -= 15;
+                                GameState.party.forEach(p => { if (p.alive) p.morale -= 5; });
+                                return 'The alternate route was worse. Lost some progress.';
+                            }
+                        }
+                    }
+                ]
+            },
+            {
                 id: 'traffic_jam',
                 title: 'Traffic Jam',
-                description: 'Brake lights as far as the eye can see. Construction zone ahead.',
+                description: 'Brake lights as far as the eye can see. Everyone is stopped.',
                 condition: () => true,
                 weight: 16,
                 choices: [
                     {
-                        text: 'Wait it out [😠 Morale -10, Gas -5]',
+                        text: 'Wait it out [😠 -10 morale, -5 gas]',
                         condition: () => true,
                         effect: () => {
                             GameState.gas -= 5;
-                            GameState.party.forEach(p => { if (p.alive) p.morale -= 10; });
+                            GameState.party.forEach(p => { 
+                                if (p.alive) {
+                                    const variation = Math.floor(Math.random() * 4) - 2;
+                                    p.morale -= 10 + variation;
+                                }
+                            });
                             return 'Sat in traffic for 2 hours. Wasted gas idling.';
                         }
                     },
@@ -191,7 +419,7 @@ const EventSystem = {
                 id: 'sibling_fight',
                 title: 'Sibling Fight',
                 description: '"Mom! He\'s touching me!" "Am not!" "Are too!"',
-                condition: () => true,
+                condition: () => GameState.party.some(p => (p.role === 'son' || p.role === 'daughter') && p.alive),
                 weight: 12,
                 choices: [
                     {
