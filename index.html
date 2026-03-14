@@ -5,10 +5,203 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Michigan Trail - Family Road Trip</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
     <div id="game-container">
-        <div id="title-screen" class="screen active">
+        <div id="main-menu" class="screen active">
+            <h1>The Michigan Trail</h1>
+            <p>A family road trip of chaos and questionable decisions</p>
+            
+            <div class="menu-profile">
+                <div class="profile-header">
+                    <span id="profile-name">Guest</span>
+                    <span id="profile-xp">0 XP</span>
+                </div>
+                <div class="profile-level">
+                    <span>Level <span id="profile-level">1</span></span>
+                    <div class="xp-bar">
+                        <div id="xp-bar-fill"></div>
+                    </div>
+                    <span id="xp-progress">0/100 XP</span>
+                </div>
+                <div class="profile-streak" id="profile-streak" style="display: none;">
+                    <span>🔥 <span id="streak-days">0</span> Day Streak</span>
+                </div>
+            </div>
+            
+            <div class="menu-buttons">
+                <button id="new-trip-btn">🚗 Start New Trip</button>
+                <button id="create-profile-btn">👤 Create Profile</button>
+                <button id="view-stats-btn">📊 View Stats</button>
+                <button id="friends-btn">👥 Friends</button>
+                <button id="badges-btn">🏅 Badges</button>
+            </div>
+            
+        </div>
+
+        <div id="profile-screen" class="screen">
+            <h1>Create Your Profile</h1>
+            <div class="profile-form">
+                <div class="google-signin-section">
+                    <button id="google-signup-btn" class="google-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Sign up with Google
+                    </button>
+                    <div class="auth-divider"><span>or</span></div>
+                </div>
+                <input type="text" id="profile-username-input" placeholder="Username" maxlength="20">
+                <input type="email" id="profile-email-input" placeholder="Email">
+                <input type="password" id="profile-password-input" placeholder="Password">
+                <input type="password" id="profile-password-confirm" placeholder="Confirm Password">
+                <label class="show-password-label">
+                    <input type="checkbox" id="show-password-toggle"> Show Password
+                </label>
+                <p id="profile-error" style="color: #ff4444; font-size: 0.9em; display: none;"></p>
+                <div class="profile-modal-buttons">
+                    <button id="save-profile-btn">Sign Up</button>
+                    <button id="cancel-profile-btn">Back</button>
+                </div>
+                <p class="auth-switch">Already have an account? <a href="#" id="go-to-login">Log In</a></p>
+            </div>
+        </div>
+
+        <div id="login-screen" class="screen">
+            <h1>Log In</h1>
+            <div class="profile-form">
+                <div class="google-signin-section">
+                    <button id="google-login-btn" class="google-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Sign in with Google
+                    </button>
+                    <div class="auth-divider"><span>or</span></div>
+                </div>
+                <input type="text" id="login-username-input" placeholder="Username" maxlength="20">
+                <input type="password" id="login-password-input" placeholder="Password">
+                <label class="show-password-label">
+                    <input type="checkbox" id="show-login-password-toggle"> Show Password
+                </label>
+                <p id="login-error" style="color: #ff4444; font-size: 0.9em; display: none;"></p>
+                <div class="profile-modal-buttons">
+                    <button id="login-btn">Log In</button>
+                    <button id="cancel-login-btn">Back</button>
+                </div>
+                <p class="auth-switch">Don't have an account? <a href="#" id="go-to-signup">Sign Up</a></p>
+            </div>
+        </div>
+
+        <div id="manage-profile-screen" class="screen">
+            <h1>Manage Profile</h1>
+            <div class="profile-form">
+                <div class="profile-photo-section">
+                    <div id="profile-photo-preview">
+                        <span id="profile-photo-placeholder">👤</span>
+                        <img id="profile-photo-img" src="" alt="Profile" style="display: none;">
+                    </div>
+                    <input type="file" id="profile-photo-input" accept="image/*" style="display: none;">
+                    <button id="upload-photo-btn">📷 Upload Photo</button>
+                </div>
+                <div class="manage-field">
+                    <label>Username:</label>
+                    <input type="text" id="manage-username-input" placeholder="Username" maxlength="20">
+                </div>
+                <div class="manage-field">
+                    <label>Email:</label>
+                    <span id="manage-email-display"></span>
+                </div>
+                <div class="profile-modal-buttons">
+                    <button id="save-manage-btn">Save Changes</button>
+                    <button id="back-manage-btn">Back</button>
+                </div>
+                <div class="logout-section">
+                    <button id="logout-btn">🚪 Log Out</button>
+                </div>
+                <div class="delete-account-section">
+                    <button id="delete-account-btn">🗑️ Delete Account</button>
+                </div>
+                <div id="delete-confirm" class="delete-confirm hidden">
+                    <p>Are you sure you want to delete your account? This cannot be undone.</p>
+                    <div class="profile-modal-buttons">
+                        <button id="confirm-delete-btn">Yes, Delete</button>
+                        <button id="cancel-delete-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="stats-screen" class="screen">
+            <h1>Your Stats</h1>
+            <div class="stats-container">
+                <div class="stats-list">
+                    <p><strong>Total XP:</strong> <span id="stats-total-xp">0</span></p>
+                    <p><strong>Level:</strong> <span id="stats-level">1</span></p>
+                    <p><strong>Trips Completed:</strong> <span id="stats-trips">0</span></p>
+                    <p><strong>Best Score:</strong> <span id="stats-best-score">0</span></p>
+                    <p><strong>Family Members Lost:</strong> <span id="stats-members-lost">0</span></p>
+                </div>
+                <button id="back-stats-btn">Back</button>
+            </div>
+        </div>
+
+        <div id="friends-screen" class="screen">
+            <h1>Friends</h1>
+            <div class="friends-container">
+                <div class="friend-search-section">
+                    <h3>Find Friends</h3>
+                    <div class="search-input-group">
+                        <input type="text" id="friend-search-input" placeholder="Search by username...">
+                        <button id="search-friend-btn">🔍 Search</button>
+                    </div>
+                    <div id="search-results"></div>
+                </div>
+                
+                <div class="friend-requests-section">
+                    <h3>Friend Requests</h3>
+                    <div id="friend-requests-list">
+                        <p class="empty-message">No pending requests</p>
+                    </div>
+                </div>
+                
+                <div class="friends-list-section">
+                    <h3>Your Friends</h3>
+                    <div id="friends-list">
+                        <p class="empty-message">No friends yet. Search for users to add!</p>
+                    </div>
+                </div>
+                
+                <button id="back-friends-btn">Back</button>
+            </div>
+        </div>
+
+        <div id="friend-profile-screen" class="screen">
+            <h1 id="friend-profile-name">Friend's Profile</h1>
+            <div class="friend-profile-container">
+                <div class="friend-profile-photo">
+                    <span id="friend-photo-placeholder">👤</span>
+                    <img id="friend-photo-img" src="" alt="Friend" style="display: none;">
+                </div>
+                <div class="friend-stats-list">
+                    <p><strong>Level:</strong> <span id="friend-level">1</span></p>
+                    <p><strong>Total XP:</strong> <span id="friend-xp">0</span></p>
+                    <p><strong>Trips Completed:</strong> <span id="friend-trips">0</span></p>
+                    <p><strong>Best Score:</strong> <span id="friend-best-score">0</span></p>
+                    <p><strong>Family Members Lost:</strong> <span id="friend-members-lost">0</span></p>
+                </div>
+                <button id="back-from-friend-btn">Back to Friends</button>
+            </div>
+        </div>
+
+        <div id="title-screen" class="screen">
             <h1>The Michigan Trail</h1>
             <p>A family road trip of chaos and questionable decisions</p>
             <button id="start-game">Start Road Trip</button>
@@ -16,41 +209,93 @@
 
         <div id="setup-screen" class="screen">
             <h1>Prepare for the Trip</h1>
-            <p>You have <span id="credits-remaining">10</span> credits to allocate</p>
-            <p style="font-size: 0.9em; color: #d4b896;">Balance your resources wisely - each level costs 1 credit</p>
             
-            <div class="allocation-container">
-                <div class="allocation-item">
-                    <h3>💰 Starting Money</h3>
-                    <p class="allocation-desc">More money = more options on the road</p>
-                    <div class="slider-container">
-                        <span>1</span>
-                        <input type="range" id="money-slider" min="1" max="5" value="3" class="allocation-slider">
-                        <span>5</span>
-                    </div>
-                    <p class="allocation-value">Level: <span id="money-level">3</span> ($<span id="money-amount">500</span>)</p>
+            <div class="setup-section">
+                <h3>Select Difficulty</h3>
+                <div class="difficulty-options">
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="alone" checked>
+                        <span>🚗 Solo Trip (Easy)</span>
+                        <small>Just you. No complaints.</small>
+                    </label>
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="couple">
+                        <span>💑 With Spouse (Medium)</span>
+                        <small>You and your partner.</small>
+                    </label>
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="family">
+                        <span>👨‍👩‍👧‍👦 Full Family (Hard)</span>
+                        <small>Spouse and both kids.</small>
+                    </label>
+                    <label class="difficulty-option">
+                        <input type="radio" name="difficulty" value="nightmare">
+                        <span>🐕 Family + Dog (Nightmare)</span>
+                        <small>Everyone. Plus the dog.</small>
+                    </label>
                 </div>
-                
-                <div class="allocation-item">
-                    <h3>🍔 Starting Snacks</h3>
-                    <p class="allocation-desc">More snacks = happier family</p>
-                    <div class="slider-container">
-                        <span>1</span>
-                        <input type="range" id="snacks-slider" min="1" max="5" value="3" class="allocation-slider">
-                        <span>5</span>
+            </div>
+            
+            <div class="setup-section" id="name-section">
+                <h3>Name Your Travelers</h3>
+                <div class="name-inputs">
+                    <div class="name-input" id="name-dad-container">
+                        <label>You:</label>
+                        <input type="text" id="name-dad" value="Dad" maxlength="12">
                     </div>
-                    <p class="allocation-value">Level: <span id="snacks-level">3</span> (<span id="snacks-amount">100</span> snacks)</p>
+                    <div class="name-input" id="name-mom-container" style="display:none;">
+                        <label>Spouse:</label>
+                        <input type="text" id="name-mom" value="Mom" maxlength="12">
+                    </div>
+                    <div class="name-input" id="name-boy-container" style="display:none;">
+                        <label>Son:</label>
+                        <input type="text" id="name-boy" value="Boy" maxlength="12">
+                    </div>
+                    <div class="name-input" id="name-girl-container" style="display:none;">
+                        <label>Daughter:</label>
+                        <input type="text" id="name-girl" value="Girl" maxlength="12">
+                    </div>
+                    <div class="name-input" id="name-dog-container" style="display:none;">
+                        <label>Dog:</label>
+                        <input type="text" id="name-dog" value="Buddy" maxlength="12">
+                    </div>
                 </div>
+            </div>
+            
+            <div class="setup-section">
+                <h3>Allocate Resources</h3>
+                <p>You have <span id="credits-remaining">1</span> credits remaining</p>
                 
-                <div class="allocation-item">
-                    <h3>😊 Starting Morale</h3>
-                    <p class="allocation-desc">Higher morale = better trip start</p>
-                    <div class="slider-container">
-                        <span>1</span>
-                        <input type="range" id="morale-slider" min="1" max="5" value="3" class="allocation-slider">
-                        <span>5</span>
+                <div class="allocation-container">
+                    <div class="allocation-item">
+                        <h4>💰 Money</h4>
+                        <div class="slider-container">
+                            <span>1</span>
+                            <input type="range" id="money-slider" min="1" max="5" value="3" class="allocation-slider">
+                            <span>5</span>
+                        </div>
+                        <p class="allocation-value">Level <span id="money-level">3</span>: $<span id="money-amount">230</span></p>
                     </div>
-                    <p class="allocation-value">Level: <span id="morale-level">3</span> (<span id="morale-amount">90</span> morale)</p>
+                    
+                    <div class="allocation-item">
+                        <h4>🍔 Snacks</h4>
+                        <div class="slider-container">
+                            <span>1</span>
+                            <input type="range" id="snacks-slider" min="1" max="5" value="3" class="allocation-slider">
+                            <span>5</span>
+                        </div>
+                        <p class="allocation-value">Level <span id="snacks-level">3</span>: <span id="snacks-amount">100</span> snacks</p>
+                    </div>
+                    
+                    <div class="allocation-item">
+                        <h4>😊 Morale</h4>
+                        <div class="slider-container">
+                            <span>1</span>
+                            <input type="range" id="morale-slider" min="1" max="5" value="3" class="allocation-slider">
+                            <span>5</span>
+                        </div>
+                        <p class="allocation-value">Level <span id="morale-level">3</span>: <span id="morale-amount">90</span> starting morale</p>
+                    </div>
                 </div>
             </div>
             
@@ -64,10 +309,6 @@
         <div id="game-screen" class="screen">
             <div id="stats-panel">
                 <div class="stat">
-                    <span class="stat-label">Date:</span>
-                    <span id="current-date">March 1, 2026</span>
-                </div>
-                <div class="stat">
                     <span class="stat-label">Distance:</span>
                     <span id="distance">0 miles</span>
                 </div>
@@ -80,20 +321,20 @@
                     <span id="food">100 snacks</span>
                 </div>
                 <div class="stat">
-                    <span class="stat-label">Your Morale:</span>
+                    <span class="stat-label">Morale:</span>
                     <span id="health">Happy</span>
                 </div>
-                <div class="stat">
-                    <span class="stat-label">Mom:</span>
+                <div class="stat" id="stat-mom">
                     <span id="morale-mom">100</span>
                 </div>
-                <div class="stat">
-                    <span class="stat-label">Boy:</span>
+                <div class="stat" id="stat-boy">
                     <span id="morale-boy">100</span>
                 </div>
-                <div class="stat">
-                    <span class="stat-label">Girl:</span>
+                <div class="stat" id="stat-girl">
                     <span id="morale-girl">100</span>
+                </div>
+                <div class="stat" id="stat-dog">
+                    <span id="morale-dog">100</span>
                 </div>
                 <div class="stat">
                     <span class="stat-label">Gas Tank:</span>
@@ -103,18 +344,34 @@
                 </div>
             </div>
 
-            <canvas id="game-canvas" width="800" height="400"></canvas>
+            <div id="canvas-container" style="position: relative;">
+                <div id="time-overlay">
+                    <span id="current-date">March 1, 2026</span> | <span id="current-time">8:00 AM</span>
+                </div>
+                <canvas id="game-canvas" width="800" height="400"></canvas>
+            </div>
 
             <div id="action-panel">
                 <button id="continue-trail">Keep driving</button>
-                <div id="city-actions" style="display: none;">
-                    <button id="city-snacks-btn">Get snacks</button>
-                    <button id="city-gas-btn">Fill up gas</button>
-                </div>
+                <button id="stop-here-btn">Stop here</button>
+                <button id="pace-btn">⚙️ Pace</button>
             </div>
 
             <div id="message-log">
                 <p>Loading up the minivan in Houston, Texas...</p>
+            </div>
+        </div>
+
+        <div id="pace-modal" class="modal">
+            <div class="modal-content">
+                <h2>Set Driving Pace</h2>
+                <p>Choose how fast you want to drive:</p>
+                <div id="pace-choices">
+                    <button class="pace-option" data-pace="slow">🐢 Slow<br><small>-5 morale/turn, saves gas</small></button>
+                    <button class="pace-option" data-pace="steady">🚗 Steady<br><small>Normal pace</small></button>
+                    <button class="pace-option" data-pace="fast">🏎️ Fast<br><small>+5 morale/turn, chance of ticket</small></button>
+                </div>
+                <p id="current-pace-display">Current pace: <strong>Steady</strong></p>
             </div>
         </div>
 
@@ -129,13 +386,26 @@
         <div id="game-over-screen" class="screen">
             <h1 id="game-over-title">Game Over</h1>
             <p id="game-over-message"></p>
-            <button id="restart-game">Play Again</button>
+            <button id="restart-game">Back to Home</button>
+        </div>
+
+        <div id="badges-modal" class="modal">
+            <div class="modal-content badges-modal-content">
+                <h2>🏅 Badges</h2>
+                <div id="badges-container"></div>
+                <button id="close-badges-btn" class="back-btn">Close</button>
+            </div>
         </div>
     </div>
 
+    <script src="js/profile.js"></script>
+    <script src="js/badges.js"></script>
     <script src="js/gameState.js"></script>
     <script src="js/eventSystem.js"></script>
     <script src="js/cityEvents.js"></script>
+    <script src="js/groceryEvent.js"></script>
+    <script src="js/routeEvents.js"></script>
+    <script src="js/dogEvents.js"></script>
     <script src="js/locations.js"></script>
     <script src="js/renderer.js"></script>
     <script src="js/ui.js"></script>
