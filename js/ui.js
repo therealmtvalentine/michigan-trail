@@ -7,9 +7,14 @@ const UI = {
         snacks: 3,
         morale: 3
     },
+    difficulty: 'alone',
     
     init() {
         this.screens = {
+            mainMenu: document.getElementById('main-menu'),
+            profile: document.getElementById('profile-screen'),
+            manageProfile: document.getElementById('manage-profile-screen'),
+            stats: document.getElementById('stats-screen'),
             title: document.getElementById('title-screen'),
             setup: document.getElementById('setup-screen'),
             game: document.getElementById('game-screen'),
@@ -25,6 +30,14 @@ const UI = {
     setupEventListeners() {
         document.getElementById('start-game').addEventListener('click', () => {
             this.showSetupScreen();
+        });
+        
+        document.querySelectorAll('input[name="difficulty"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                this.difficulty = e.target.value;
+                this.updateNameInputs();
+                this.updateAllocationDisplay();
+            });
         });
         
         document.getElementById('money-slider').addEventListener('input', (e) => {
@@ -47,9 +60,71 @@ const UI = {
             this.continueTrail();
         });
         
+        document.getElementById('stop-here-btn').addEventListener('click', () => {
+            this.stopHere();
+        });
+        
+        document.getElementById('pace-btn').addEventListener('click', () => {
+            this.showPaceModal();
+        });
+        
+        document.querySelectorAll('.pace-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const pace = e.currentTarget.dataset.pace;
+                this.setPace(pace);
+            });
+        });
+        
         document.getElementById('restart-game').addEventListener('click', () => {
             this.restartGame();
         });
+    },
+    
+    showPaceModal() {
+        const modal = document.getElementById('pace-modal');
+        modal.style.display = 'flex';
+        this.updatePaceDisplay();
+    },
+    
+    hidePaceModal() {
+        document.getElementById('pace-modal').style.display = 'none';
+    },
+    
+    setPace(pace) {
+        GameState.pace = pace;
+        this.updatePaceDisplay();
+        this.hidePaceModal();
+        
+        const paceNames = { slow: 'Slow', steady: 'Steady', fast: 'Fast' };
+        this.addMessage(`Pace set to ${paceNames[pace]}.`);
+    },
+    
+    updatePaceDisplay() {
+        const paceNames = { slow: 'Slow', steady: 'Steady', fast: 'Fast' };
+        const display = document.getElementById('current-pace-display');
+        if (display) {
+            display.innerHTML = `Current pace: <strong>${paceNames[GameState.pace]}</strong>`;
+        }
+    },
+    
+    updateNameInputs() {
+        const showMom = ['couple', 'family', 'nightmare'].includes(this.difficulty);
+        const showKids = ['family', 'nightmare'].includes(this.difficulty);
+        const showDog = this.difficulty === 'nightmare';
+        
+        document.getElementById('name-mom-container').style.display = showMom ? 'flex' : 'none';
+        document.getElementById('name-boy-container').style.display = showKids ? 'flex' : 'none';
+        document.getElementById('name-girl-container').style.display = showKids ? 'flex' : 'none';
+        document.getElementById('name-dog-container').style.display = showDog ? 'flex' : 'none';
+    },
+    
+    stopHere() {
+        if (GameState.phase === 'gameOver' || GameState.phase === 'won') {
+            return;
+        }
+        const cityEvent = CityEvents.getCityArrivalEvent();
+        this.showEvent(cityEvent);
+        this.addMessage('You decided to make a stop.');
     },
     
     showSetupScreen() {
@@ -70,8 +145,18 @@ const UI = {
         document.getElementById('credits-remaining').textContent = remaining;
         document.getElementById('credits-remaining').style.color = remaining >= 0 ? '#44ff44' : '#ff4444';
         
+        const difficultyModifiers = {
+            'alone': 0.90,
+            'couple': 1.00,
+            'family': 1.15,
+            'nightmare': 1.30
+        };
+        const modifier = difficultyModifiers[this.difficulty] || 1.00;
+        const baseAmount = Math.floor(80 * modifier);
+        const perAllocation = Math.floor(50 * modifier);
+        
         document.getElementById('money-level').textContent = this.allocations.money;
-        document.getElementById('money-amount').textContent = 50 + (this.allocations.money * 40);
+        document.getElementById('money-amount').textContent = baseAmount + (this.allocations.money * perAllocation);
         
         document.getElementById('snacks-level').textContent = this.allocations.snacks;
         document.getElementById('snacks-amount').textContent = 40 + (this.allocations.snacks * 20);
@@ -105,17 +190,99 @@ const UI = {
         GameState.init();
         EventSystem.init();
         Locations.init();
+        GroceryEvent.reset();
         
-        GameState.money = 50 + (this.allocations.money * 40);
+        const dadName = document.getElementById('name-dad').value || 'Dad';
+        const momName = document.getElementById('name-mom').value || 'Mom';
+        const boyName = document.getElementById('name-boy').value || 'Boy';
+        const girlName = document.getElementById('name-girl').value || 'Girl';
+        const dogName = document.getElementById('name-dog').value || 'Buddy';
+        
+        GameState.difficulty = this.difficulty;
+        GameState.party = [];
+        
+        GameState.party.push({ 
+            name: dadName, role: 'husband', health: 100, morale: 100, alive: true,
+            personality: { foodBonus: 1.0, musicBonus: 1.5, patience: 0.8, gameBonus: 0.7 }
+        });
+        
+        if (['couple', 'family', 'nightmare'].includes(this.difficulty)) {
+            GameState.party.push({ 
+                name: momName, role: 'wife', health: 100, morale: 100, alive: true,
+                personality: { foodBonus: 1.2, musicBonus: 1.0, patience: 1.5, gameBonus: 0.5 }
+            });
+        }
+        
+        if (['family', 'nightmare'].includes(this.difficulty)) {
+            GameState.party.push({ 
+                name: boyName, role: 'son', health: 100, morale: 100, alive: true,
+                personality: { foodBonus: 1.3, musicBonus: 0.6, patience: 0.5, gameBonus: 1.8 }
+            });
+            GameState.party.push({ 
+                name: girlName, role: 'daughter', health: 100, morale: 100, alive: true,
+                personality: { foodBonus: 0.8, musicBonus: 1.4, patience: 0.6, gameBonus: 1.5 }
+            });
+        }
+        
+        if (this.difficulty === 'nightmare') {
+            GameState.party.push({ 
+                name: dogName, role: 'dog', health: 100, morale: 100, alive: true,
+                personality: { foodBonus: 2.0, musicBonus: 0.3, patience: 0.3, gameBonus: 0.5 }
+            });
+        }
+        
+        const difficultyModifiers = {
+            'alone': 0.90,    // Easy: -10%
+            'couple': 1.00,   // Medium: +0%
+            'family': 1.15,   // Hard: +15%
+            'nightmare': 1.30 // Nightmare: +30%
+        };
+        
+        const modifier = difficultyModifiers[this.difficulty] || 1.00;
+        const baseAmount = Math.floor(80 * modifier);
+        const perAllocation = Math.floor(50 * modifier);
+        
+        GameState.money = baseAmount + (this.allocations.money * perAllocation);
         GameState.snacks = 40 + (this.allocations.snacks * 20);
         const startingMorale = 60 + (this.allocations.morale * 10);
         GameState.party.forEach(member => {
             member.morale = startingMorale;
         });
         
+        // Allocation badges
+        if (this.allocations.morale === 5) Badges.unlock('happy_family');
+        if (this.allocations.money === 5) Badges.unlock('scrooge_mcduck');
+        if (this.allocations.snacks === 5) Badges.unlock('burp');
+        if (this.allocations.morale === 1) Badges.unlock('temper_tantrum');
+        if (this.allocations.money === 1) Badges.unlock('chapter_11');
+        if (this.allocations.snacks === 1) Badges.unlock('hungry');
+        
+        const streakResult = Profile.checkAndUpdateStreak();
+        if (streakResult.streakBonus > 0) {
+            GameState.money += streakResult.streakBonus;
+            GameState.streakBonus = streakResult.streakBonus;
+        }
+        
         this.showScreen('game');
         this.updateStats();
-        this.addMessage('Road trip time! Loading up the minivan in Houston. Destination: Michigan! Let\'s hope everyone survives...');
+        
+        if (streakResult.streakBonus > 0) {
+            this.addMessage(`🔥 ${streakResult.weekStreak} WEEK STREAK! You earned $${streakResult.streakBonus} bonus!`);
+        } else if (streakResult.dayStreak > 0) {
+            this.addMessage(`🔥 ${streakResult.dayStreak} day streak! Play ${7 - (streakResult.dayStreak % 7)} more days for a $200 bonus!`);
+        }
+        
+        let tripMessage = 'Road trip time! ';
+        if (this.difficulty === 'alone') {
+            tripMessage += `Just ${dadName} heading to Michigan. Peace and quiet!`;
+        } else if (this.difficulty === 'couple') {
+            tripMessage += `${dadName} and ${momName} heading to Michigan together!`;
+        } else if (this.difficulty === 'family') {
+            tripMessage += `The whole family is heading to Michigan! Let\'s hope everyone survives...`;
+        } else {
+            tripMessage += `Everyone AND the dog?! This is going to be chaos...`;
+        }
+        this.addMessage(tripMessage);
     },
     
     continueTrail() {
@@ -126,10 +293,24 @@ const UI = {
         const result = GameState.advanceDay();
         this.updateStats();
         
+        if (GameState.speedingTicket) {
+            this.addMessage(`🚨 Pulled over! Speeding ticket: -$50`);
+            GameState.speedingTicket = false;
+            Badges.unlock('nice_try');
+        }
+        
+        const leftMembers = GameState.party.filter(p => !p.alive && p.leftMessage);
+        leftMembers.forEach(member => {
+            if (member.leftMessage) {
+                this.addMessage(`⚠️ ${member.leftMessage}`);
+                member.leftMessage = null;
+            }
+        });
+        
         if (GameState.phase === 'gameOver') {
-            const lowMoraleMember = GameState.party.find(p => p.morale <= 0);
-            if (lowMoraleMember) {
-                this.gameOver(`${lowMoraleMember.name}'s morale hit rock bottom. The family refuses to continue the trip.`);
+            const dad = GameState.party.find(p => p.role === 'husband');
+            if (dad && dad.morale <= 0) {
+                this.gameOver(GameState.getLeaveMessage(dad));
             } else if (GameState.gas <= 0) {
                 this.gameOver('Your party has run out of gas on the highway.');
             } else {
@@ -154,6 +335,30 @@ const UI = {
             
             if (locationCheck.location.hasStore) {
                 this.addMessage('There is a store here where you can buy supplies.');
+            }
+        }
+        
+        if (GroceryEvent.shouldTriggerGrocery()) {
+            const groceryEvent = GroceryEvent.getGroceryEvent();
+            this.showEvent(groceryEvent);
+            this.addMessage('You spotted a grocery store! Good chance to stock up.');
+            return;
+        }
+        
+        const routePoint = RouteEvents.checkForRouteDecision();
+        if (routePoint) {
+            const routeEvent = RouteEvents.getRouteEvent(routePoint);
+            this.showEvent(routeEvent);
+            this.addMessage(`Approaching ${routePoint.name}...`);
+            return;
+        }
+        
+        const hasDog = GameState.party.some(p => p.role === 'dog' && p.alive);
+        if (hasDog && Math.random() < 0.25) {
+            const dogEvent = DogEvents.getRandomDogEvent();
+            if (dogEvent) {
+                this.showEvent(dogEvent);
+                return;
             }
         }
         
@@ -213,6 +418,11 @@ const UI = {
         document.getElementById('distance').textContent = 
             `${GameState.distance} / ${GameState.totalDistance} mi`;
         
+        const hour = GameState.currentHour;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+        document.getElementById('current-time').textContent = `${displayHour}:00 ${ampm}`;
+        
         document.getElementById('money').textContent = `$${GameState.money}`;
         document.getElementById('food').textContent = `${GameState.snacks} snacks`;
         
@@ -230,10 +440,11 @@ const UI = {
             gasBarFill.style.background = 'linear-gradient(to right, #44ff44, #88ff88)';
         }
         
-        const dad = GameState.party.find(p => p.name === 'Dad');
-        const mom = GameState.party.find(p => p.name === 'Mom');
-        const boy = GameState.party.find(p => p.name === 'Boy');
-        const girl = GameState.party.find(p => p.name === 'Girl');
+        const dad = GameState.party.find(p => p.role === 'husband');
+        const mom = GameState.party.find(p => p.role === 'wife');
+        const boy = GameState.party.find(p => p.role === 'son');
+        const girl = GameState.party.find(p => p.role === 'daughter');
+        const dog = GameState.party.find(p => p.role === 'dog');
         
         if (dad) {
             const dadMorale = dad.morale;
@@ -243,7 +454,7 @@ const UI = {
             else if (dadMorale < 60) dadStatus = 'Neutral';
             else if (dadMorale < 80) dadStatus = 'Content';
             
-            document.getElementById('health').textContent = dadStatus;
+            document.getElementById('health').textContent = `${dad.name}: ${dadStatus} (${Math.round(dadMorale)})`;
             const healthElement = document.getElementById('health');
             healthElement.className = '';
             if (dadMorale < 40) {
@@ -255,39 +466,59 @@ const UI = {
             }
         }
         
+        const momContainer = document.getElementById('morale-mom')?.parentElement;
+        const boyContainer = document.getElementById('morale-boy')?.parentElement;
+        const girlContainer = document.getElementById('morale-girl')?.parentElement;
+        const dogContainer = document.getElementById('morale-dog')?.parentElement;
+        
+        if (momContainer) momContainer.style.display = mom ? 'block' : 'none';
+        if (boyContainer) boyContainer.style.display = boy ? 'block' : 'none';
+        if (girlContainer) girlContainer.style.display = girl ? 'block' : 'none';
+        if (dogContainer) dogContainer.style.display = dog ? 'block' : 'none';
+        
         if (mom) {
             const momElement = document.getElementById('morale-mom');
-            momElement.textContent = mom.morale;
-            if (mom.morale < 40) {
-                momElement.style.color = '#ff4444';
-            } else if (mom.morale < 70) {
-                momElement.style.color = '#ffaa44';
+            if (mom.alive) {
+                momElement.textContent = `${mom.name}: ${Math.round(mom.morale)}`;
+                momElement.style.color = mom.morale < 40 ? '#ff4444' : mom.morale < 70 ? '#ffaa44' : '#44ff44';
             } else {
-                momElement.style.color = '#44ff44';
+                momElement.textContent = `${mom.name}: Gone`;
+                momElement.style.color = '#888888';
             }
         }
         
         if (boy) {
             const boyElement = document.getElementById('morale-boy');
-            boyElement.textContent = boy.morale;
-            if (boy.morale < 40) {
-                boyElement.style.color = '#ff4444';
-            } else if (boy.morale < 70) {
-                boyElement.style.color = '#ffaa44';
+            if (boy.alive) {
+                boyElement.textContent = `${boy.name}: ${Math.round(boy.morale)}`;
+                boyElement.style.color = boy.morale < 40 ? '#ff4444' : boy.morale < 70 ? '#ffaa44' : '#44ff44';
             } else {
-                boyElement.style.color = '#44ff44';
+                boyElement.textContent = `${boy.name}: Gone`;
+                boyElement.style.color = '#888888';
             }
         }
         
         if (girl) {
             const girlElement = document.getElementById('morale-girl');
-            girlElement.textContent = girl.morale;
-            if (girl.morale < 40) {
-                girlElement.style.color = '#ff4444';
-            } else if (girl.morale < 70) {
-                girlElement.style.color = '#ffaa44';
+            if (girl.alive) {
+                girlElement.textContent = `${girl.name}: ${Math.round(girl.morale)}`;
+                girlElement.style.color = girl.morale < 40 ? '#ff4444' : girl.morale < 70 ? '#ffaa44' : '#44ff44';
             } else {
-                girlElement.style.color = '#44ff44';
+                girlElement.textContent = `${girl.name}: Gone`;
+                girlElement.style.color = '#888888';
+            }
+        }
+        
+        if (dog) {
+            const dogElement = document.getElementById('morale-dog');
+            if (dogElement) {
+                if (dog.alive) {
+                    dogElement.textContent = `${dog.name}: ${Math.round(dog.morale)}`;
+                    dogElement.style.color = dog.morale < 40 ? '#ff4444' : dog.morale < 70 ? '#ffaa44' : '#44ff44';
+                } else {
+                    dogElement.textContent = `${dog.name}: Gone`;
+                    dogElement.style.color = '#888888';
+                }
             }
         }
     },
@@ -307,14 +538,27 @@ const UI = {
         document.getElementById('event-title').textContent = event.title;
         document.getElementById('event-description').textContent = event.description;
         
+        // Call onTrigger if defined (for badge unlocks etc)
+        if (event.onTrigger) {
+            event.onTrigger();
+        }
+        
         const choicesContainer = document.getElementById('event-choices');
         choicesContainer.innerHTML = '';
         
         event.choices.forEach((choice, index) => {
-            if (choice.condition()) {
-                const button = document.createElement('button');
-                button.textContent = choice.text;
-                button.addEventListener('click', () => {
+            const button = document.createElement('button');
+            button.textContent = choice.text;
+            
+            if (!choice.condition()) {
+                button.disabled = true;
+                button.style.opacity = '0.5';
+                button.style.cursor = 'not-allowed';
+                button.title = 'Insufficient money';
+            }
+            
+            button.addEventListener('click', () => {
+                if (choice.condition()) {
                     const result = choice.effect();
                     this.addMessage(`${event.title}: ${result}`);
                     this.updateStats();
@@ -323,9 +567,9 @@ const UI = {
                     if (GameState.phase === 'gameOver') {
                         this.gameOver('Your party has perished on the trail.');
                     }
-                });
-                choicesContainer.appendChild(button);
-            }
+                }
+            });
+            choicesContainer.appendChild(button);
         });
         
         this.modal.classList.add('active');
@@ -346,26 +590,94 @@ const UI = {
     },
     
     gameWon() {
+        const scoreBreakdown = this.calculateScore();
+        const membersLost = scoreBreakdown.totalCount - scoreBreakdown.aliveCount;
+        
         document.getElementById('game-over-title').textContent = 'You Made It!';
-        document.getElementById('game-over-message').textContent = 
-            `You survived the family road trip to Michigan!\n\nYou traveled ${GameState.totalDistance} miles in ${GameState.daysTraveled} days.\n\nFinal Score: ${this.calculateScore()} points\n\nThe family will never forget this trip (therapy pending).`;
+        
+        // Check for badges
+        Badges.checkTripBadges();
+        
+        // Nightmare difficulty badge
+        if (this.difficulty === 'nightmare') {
+            Badges.unlock('you_deserve_better');
+        }
+        
+        // High morale badge (200+ morale)
+        const highMoraleMember = GameState.party.find(p => p.alive && p.morale >= 200);
+        if (highMoraleMember) {
+            Badges.unlock('wow');
+        }
+        
+        let xpMessage = '';
+        if (Profile.data.isRegistered) {
+            const tripResult = Profile.completeTrip(scoreBreakdown.total, membersLost);
+            xpMessage = `<strong>+${tripResult.xpGained} XP earned!</strong>` +
+                (tripResult.leveledUp ? `<br>🎉 LEVEL UP! You are now level ${tripResult.newLevel}!` : '');
+        } else {
+            xpMessage = `<em>Create a profile to save your stats and earn XP!</em><br>` +
+                `<button id="create-profile-endgame" style="margin-top: 10px; padding: 10px 20px;">👤 Create Profile</button>`;
+        }
+        
+        document.getElementById('game-over-message').innerHTML = 
+            `You survived the family road trip to Michigan!<br><br>` +
+            `<strong>═══ SCORE BREAKDOWN ═══</strong><br><br>` +
+            `<strong>Family Members:</strong> ${scoreBreakdown.aliveCount}/${scoreBreakdown.totalCount} still with you = ${scoreBreakdown.aliveBonus} pts<br>` +
+            `<strong>Money Remaining:</strong> $${GameState.money} = ${scoreBreakdown.moneyBonus} pts<br>` +
+            `<strong>Snacks Remaining:</strong> ${GameState.snacks} = ${scoreBreakdown.snacksBonus} pts<br>` +
+            `<strong>Morale Bonus:</strong> ${scoreBreakdown.moraleDetails} = ${scoreBreakdown.moraleBonus} pts<br><br>` +
+            `<strong>═══ TOTAL SCORE: ${scoreBreakdown.total} ═══</strong><br><br>` +
+            xpMessage +
+            `<br><br>The family will never forget this trip (therapy pending).`;
         
         setTimeout(() => {
             this.showScreen('gameOver');
+            
+            const createProfileBtn = document.getElementById('create-profile-endgame');
+            if (createProfileBtn) {
+                createProfileBtn.addEventListener('click', () => {
+                    this.showScreen('mainMenu');
+                    document.getElementById('profile-modal').classList.remove('hidden');
+                    document.getElementById('profile-username-input').focus();
+                });
+            }
         }, 1000);
     },
     
     calculateScore() {
-        const aliveBonus = GameState.party.filter(p => p.alive).length * 500;
-        const moraleBonus = GameState.morale * 10;
-        const suppliesBonus = (GameState.snacks + GameState.money + (GameState.gas * 3));
-        const speedBonus = Math.max(0, 5000 - (GameState.daysTraveled * 20));
+        const aliveMembers = GameState.party.filter(p => p.alive);
+        const aliveCount = aliveMembers.length;
+        const totalCount = GameState.party.length;
+        const aliveBonus = aliveCount * 300;
         
-        return aliveBonus + moraleBonus + suppliesBonus + speedBonus;
+        const moneyBonus = GameState.money * 2;
+        const snacksBonus = GameState.snacks * 3;
+        
+        let moraleBonus = 0;
+        let moraleDetails = [];
+        aliveMembers.forEach(p => {
+            const bonus = Math.round(p.morale);
+            moraleBonus += bonus;
+            moraleDetails.push(`${p.name}: ${bonus}`);
+        });
+        
+        const total = Math.max(0, aliveBonus + moneyBonus + snacksBonus + moraleBonus);
+        
+        return {
+            aliveCount,
+            totalCount,
+            aliveBonus,
+            moneyBonus,
+            snacksBonus,
+            moraleBonus,
+            moraleDetails: moraleDetails.join(', '),
+            total
+        };
     },
     
     restartGame() {
         this.messageLog.innerHTML = '';
-        this.startGame();
+        Profile.updateDisplay();
+        this.showScreen('mainMenu');
     }
 };
