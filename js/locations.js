@@ -11,7 +11,7 @@ const Locations = {
                 hasStore: true
             },
             {
-                name: 'Buc-ee\'s (Madisonville, TX)',
+                name: 'A Buc-ee\'s',
                 distance: 100,
                 type: 'rest_stop',
                 description: 'The legendary Texas rest stop with clean bathrooms.',
@@ -54,24 +54,17 @@ const Locations = {
             },
             {
                 name: 'Indianapolis, IN',
-                distance: 1100,
+                distance: 1000,
                 type: 'city',
                 description: 'Racing capital, getting close now!',
                 hasStore: true
             },
             {
-                name: 'Fort Wayne, IN',
-                distance: 1220,
+                name: 'Detroit, MI',
+                distance: 1200,
                 type: 'city',
-                description: 'Almost to Michigan!',
+                description: 'Motor City! Welcome to Michigan!',
                 hasStore: true
-            },
-            {
-                name: 'Michigan State Line',
-                distance: 1280,
-                type: 'landmark',
-                description: 'Welcome to Michigan! Final stretch!',
-                hasStore: false
             },
             {
                 name: 'Destination: Michigan!',
