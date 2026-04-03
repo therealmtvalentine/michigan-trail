@@ -8,6 +8,9 @@ const Renderer = {
     cloudX: 0,
     treeOffset: 0,
     
+    useImageBackgrounds: true,
+    useCarSprite: true,
+    
     init() {
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
@@ -16,21 +19,64 @@ const Renderer = {
     
     render() {
         this.clearCanvas();
-        this.drawSky();
-        this.drawGround();
-        this.drawClouds();
-        this.drawTrees();
-        this.drawRoadSigns();
-        this.drawBuildings();
-        this.drawHighway();
-        this.drawCar();
+        
+        // Try to draw background image, fall back to procedural
+        if (!this.drawBackgroundImage()) {
+            this.drawSky();
+            this.drawGround();
+            this.drawClouds();
+            this.drawTrees();
+            this.drawRoadSigns();
+            this.drawBuildings();
+            this.drawHighway();
+        }
+        
         this.drawDistance();
-        this.drawMoraleLegend();
-        this.drawMoraleIndicator();
-        this.drawGasGauge();
         
         this.treeOffset = (this.treeOffset + 2) % 100;
         this.cloudX = (this.cloudX + 0.5) % this.canvas.width;
+    },
+    
+    drawBackgroundImage() {
+        if (!this.useImageBackgrounds) {
+            console.log('Image backgrounds disabled');
+            return false;
+        }
+        if (!ImageLoader.loaded) {
+            console.log('Images not loaded yet');
+            return false;
+        }
+        
+        const currentLocation = Locations.getCurrentLocation();
+        if (!currentLocation) {
+            console.log('No current location');
+            return false;
+        }
+        
+        const distanceFromLocation = GameState.distance - currentLocation.distance;
+        const nextLocation = Locations.getNextLocation();
+        const distanceToNext = nextLocation ? nextLocation.distance - GameState.distance : 999;
+        
+        // Show location background if within 20 miles on either side
+        let backgroundName = null;
+        if (currentLocation.background && distanceFromLocation <= 20) {
+            backgroundName = currentLocation.background;
+        } else if (nextLocation && nextLocation.background && distanceToNext <= 20) {
+            backgroundName = nextLocation.background;
+        } else {
+            // Show wilderness background
+            backgroundName = Locations.getWildernessBackground();
+        }
+        
+        const bgImage = ImageLoader.getBackground(backgroundName);
+        if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
+            // Draw background scaled to canvas
+            this.ctx.drawImage(bgImage, 0, 0, this.canvas.width, this.canvas.height);
+            return true;
+        }
+        
+        console.log('Background image not ready:', backgroundName, bgImage);
+        return false;
     },
     
     clearCanvas() {
@@ -132,6 +178,19 @@ const Renderer = {
         const x = this.carX;
         const y = this.carY;
         
+        // Try to draw car sprite image
+        if (this.useCarSprite && ImageLoader.loaded) {
+            const carSprite = ImageLoader.getSprite('car_with_family');
+            if (carSprite && carSprite.complete && carSprite.naturalWidth > 0) {
+                // Scale sprite to fit nicely (original is large, scale down)
+                const spriteWidth = 180;
+                const spriteHeight = 90;
+                this.ctx.drawImage(carSprite, x - 20, y - 10, spriteWidth, spriteHeight);
+                return;
+            }
+        }
+        
+        // Fallback to procedural car drawing
         this.ctx.fillStyle = '#c41e3a';
         this.ctx.fillRect(x + 10, y + 20, 80, 30);
         
@@ -252,14 +311,14 @@ const Renderer = {
     },
     
     drawDistance() {
-        this.ctx.fillStyle = '#2c1810';
-        this.ctx.font = 'bold 16px "Courier New"';
-        this.ctx.fillText(`${GameState.distance} miles`, 10, 30);
-        
         const nextLocation = Locations.getNextLocation();
         if (nextLocation) {
             const distanceToNext = Locations.getDistanceToNext();
-            this.ctx.fillText(`Next: ${nextLocation.name} (${distanceToNext} mi)`, 10, 50);
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            this.ctx.fillRect(5, this.canvas.height - 35, 280, 30);
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.font = 'bold 16px "Courier New"';
+            this.ctx.fillText(`Next: ${nextLocation.name} (${distanceToNext} mi)`, 10, this.canvas.height - 12);
         }
     },
     
