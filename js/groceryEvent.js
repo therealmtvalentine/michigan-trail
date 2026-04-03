@@ -57,6 +57,7 @@ const GroceryEvent = {
                     condition: () => true,
                     effect: () => {
                         GameState.party.forEach(p => { if (p.alive) p.morale -= 5; });
+                        GroceryEvent.hasVisitedGrocery = true;
                         return 'You passed on the grocery store. Hope you have enough snacks...';
                     }
                 }

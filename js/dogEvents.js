@@ -213,6 +213,40 @@ const DogEvents = {
                     }
                 }
             ]
+        },
+        {
+            id: 'dog_breed_compliment',
+            title: 'Fellow Dog Lover!',
+            description: () => {
+                const dog = GameState.party.find(p => p.role === 'dog');
+                const breed = Profile.data.family && Profile.data.family.dogBreed ? Profile.data.family.dogBreed : 'mixed';
+                const breedName = breed.charAt(0).toUpperCase() + breed.slice(1);
+                return `At a rest stop, someone approaches your car. "What a beautiful ${breedName}! I have one just like ${dog ? dog.name : 'yours'} at home!"`;
+            },
+            condition: () => Profile.data.level >= 11 && GameState.party.some(p => p.role === 'dog' && p.alive),
+            weight: 8,
+            choices: [
+                {
+                    text: 'Chat about your dog [+10 dog morale, +5 everyone]',
+                    condition: () => true,
+                    effect: () => {
+                        const dog = GameState.party.find(p => p.role === 'dog');
+                        if (dog) dog.morale += 10;
+                        GameState.party.forEach(p => {
+                            if (p.alive && p.role !== 'dog') p.morale += 5;
+                        });
+                        const breed = Profile.data.family && Profile.data.family.dogBreed ? Profile.data.family.dogBreed : 'mixed';
+                        return `You had a lovely chat about ${breed}s. ${dog ? dog.name : 'The dog'} loved the attention!`;
+                    }
+                },
+                {
+                    text: 'Politely decline and continue',
+                    condition: () => true,
+                    effect: () => {
+                        return 'You wave politely and get back on the road.';
+                    }
+                }
+            ]
         }
     ],
     

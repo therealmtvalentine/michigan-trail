@@ -15,6 +15,10 @@ const UI = {
             profile: document.getElementById('profile-screen'),
             manageProfile: document.getElementById('manage-profile-screen'),
             stats: document.getElementById('stats-screen'),
+            settings: document.getElementById('settings-screen'),
+            car: document.getElementById('car-screen'),
+            family: document.getElementById('family-screen'),
+            challenges: document.getElementById('challenges-screen'),
             title: document.getElementById('title-screen'),
             setup: document.getElementById('setup-screen'),
             game: document.getElementById('game-screen'),
@@ -131,6 +135,16 @@ const UI = {
         this.showScreen('setup');
         this.allocations = { money: 3, snacks: 3, morale: 3 };
         this.updateAllocationDisplay();
+        
+        // Pre-fill family names from profile
+        if (!Profile.data.family) {
+            Profile.data.family = { dad: 'Dad', mom: 'Mom', son: 'Boy', daughter: 'Girl', dog: 'Buddy', dogBreed: 'mixed' };
+        }
+        document.getElementById('name-dad').value = Profile.data.family.dad || 'Dad';
+        document.getElementById('name-mom').value = Profile.data.family.mom || 'Mom';
+        document.getElementById('name-boy').value = Profile.data.family.son || 'Boy';
+        document.getElementById('name-girl').value = Profile.data.family.daughter || 'Girl';
+        document.getElementById('name-dog').value = Profile.data.family.dog || 'Buddy';
     },
     
     updateAllocation(type, value) {
@@ -263,6 +277,7 @@ const UI = {
             GameState.streakBonus = streakResult.streakBonus;
         }
         
+        GameState.phase = 'playing';
         this.showScreen('game');
         this.updateStats();
         

@@ -111,6 +111,9 @@ const GameState = {
         let gasConsumption = 0;
         let hoursThisSegment = 2;
         
+        // Get car type bonus
+        const carType = Profile.data.car ? Profile.data.car.type : 'minivan';
+        
         switch(this.pace) {
             case 'slow': 
                 milesThisSegment = 50;
@@ -124,6 +127,18 @@ const GameState = {
                 milesThisSegment = 100;
                 gasConsumption = 4.5;
                 break;
+        }
+        
+        // Apply speed bonuses from car type
+        if (carType === 'sedan') {
+            milesThisSegment = Math.round(milesThisSegment * 1.15); // 15% speed increase
+        } else if (carType === 'roadster') {
+            milesThisSegment = Math.round(milesThisSegment * 1.333); // 33.3% speed increase
+        }
+        
+        // Apply fuel saver bonus from hatchback
+        if (carType === 'hatchback') {
+            gasConsumption = gasConsumption * 0.67; // 33% less fuel
         }
         
         this.updateWeather();
@@ -168,6 +183,11 @@ const GameState = {
             case 'generous': snackConsumption = 6 * aliveParty; break;
         }
         
+        // Apply snack saver bonus from crossover (-1 per person)
+        if (carType === 'crossover') {
+            snackConsumption = Math.max(0, snackConsumption - aliveParty);
+        }
+        
         this.snacks = Math.max(0, this.snacks - snackConsumption);
         
         this.updateHealth();
@@ -185,6 +205,9 @@ const GameState = {
         let healthChange = 0;
         let moraleChange = 0;
         
+        // Get car type for SUV morale bonus
+        const carType = Profile.data.car ? Profile.data.car.type : 'minivan';
+        
         if (this.snacks <= 0) {
             healthChange -= 8;
             moraleChange -= 10;
@@ -199,6 +222,11 @@ const GameState = {
             moraleChange -= 1;
         } else if (this.snackLevel === 'generous') {
             moraleChange -= 1;
+        }
+        
+        // Apply SUV morale saver bonus (20% less morale decrease)
+        if (carType === 'suv' && moraleChange < 0) {
+            moraleChange = Math.round(moraleChange * 0.8);
         }
         
         if (this.pace === 'slow') {
@@ -231,6 +259,11 @@ const GameState = {
                 let adjustedMoraleChange = moraleChange;
                 if (member.role === 'wife') {
                     adjustedMoraleChange = Math.ceil(moraleChange * 0.5);
+                }
+                
+                // Apply Good Parenting perk (kids lose 10% less morale)
+                if (adjustedMoraleChange < 0 && typeof Perks !== 'undefined') {
+                    adjustedMoraleChange = Math.round(adjustedMoraleChange * Perks.getMoraleLossModifier(member));
                 }
                 
                 member.morale += adjustedMoraleChange;
@@ -284,6 +317,11 @@ const GameState = {
         }
         
         const aliveParty = this.party.filter(p => p.alive);
+        
+        // Apply turn-based perks (heated seats, power brick)
+        if (typeof Perks !== 'undefined') {
+            Perks.applyTurnPerks(this.party);
+        }
         
         const avgHealth = aliveParty.length > 0 ? aliveParty.reduce((sum, p) => sum + p.health, 0) / aliveParty.length : 0;
         const avgMorale = aliveParty.length > 0 ? aliveParty.reduce((sum, p) => sum + p.morale, 0) / aliveParty.length : 0;
