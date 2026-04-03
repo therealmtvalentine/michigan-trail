@@ -10,32 +10,52 @@
 <body>
     <div id="game-container">
         <div id="main-menu" class="screen active">
+            <div class="menu-corner-icons">
+                <button id="corner-challenges-btn" class="corner-icon" title="Daily Challenges">&#127919;</button>
+                <button id="corner-profile-btn" class="corner-icon" title="Edit Profile">&#9881;</button>
+            </div>
+            
             <h1>The Michigan Trail</h1>
             <p>A family road trip of chaos and questionable decisions</p>
             
-            <div class="menu-profile">
-                <div class="profile-header">
-                    <span id="profile-name">Guest</span>
-                    <span id="profile-xp">0 XP</span>
-                </div>
-                <div class="profile-level">
-                    <span>Level <span id="profile-level">1</span></span>
-                    <div class="xp-bar">
-                        <div id="xp-bar-fill"></div>
+            <div class="menu-profile" id="menu-profile-clickable">
+                <!-- Logged in view -->
+                <div id="profile-logged-in" style="display: none;">
+                    <div class="profile-header">
+                        <span id="profile-name">Guest</span>
+                        <span id="profile-xp">0 XP</span>
                     </div>
-                    <span id="xp-progress">0/100 XP</span>
+                    <div class="profile-level" id="profile-level-container">
+                        <span>Level <span id="profile-level">1</span></span>
+                        <div class="xp-bar">
+                            <div id="xp-bar-fill"></div>
+                        </div>
+                        <span id="xp-progress">0/100 XP</span>
+                    </div>
+                    <div class="profile-streak" id="profile-streak" style="display: none;">
+                        <span>&#128293; <span id="streak-days">0</span> Day Streak</span>
+                    </div>
                 </div>
-                <div class="profile-streak" id="profile-streak" style="display: none;">
-                    <span>🔥 <span id="streak-days">0</span> Day Streak</span>
+                
+                <!-- Logged out view -->
+                <div id="profile-logged-out">
+                    <div class="guest-prompt">
+                        <span>&#128100; Go to profile settings to create an account!</span>
+                    </div>
+                </div>
+                
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <button id="dropdown-car-btn">&#128663; My Car</button>
+                    <button id="dropdown-badges-btn">&#127941; Badges</button>
+                    <button id="dropdown-stats-btn">&#128202; Stats</button>
                 </div>
             </div>
             
             <div class="menu-buttons">
-                <button id="new-trip-btn">🚗 Start New Trip</button>
-                <button id="create-profile-btn">👤 Create Profile</button>
-                <button id="view-stats-btn">📊 View Stats</button>
-                <button id="friends-btn">👥 Friends</button>
-                <button id="badges-btn">🏅 Badges</button>
+                <button id="new-trip-btn">&#128663; Start New Trip</button>
+                <button id="friends-btn">&#128101; Friends</button>
+                <button id="family-btn">&#128106; My Family</button>
+                <button id="settings-btn">&#9881; Settings</button>
             </div>
             
         </div>
@@ -101,39 +121,70 @@
         </div>
 
         <div id="manage-profile-screen" class="screen">
-            <h1>Manage Profile</h1>
-            <div class="profile-form">
-                <div class="profile-photo-section">
-                    <div id="profile-photo-preview">
-                        <span id="profile-photo-placeholder">👤</span>
-                        <img id="profile-photo-img" src="" alt="Profile" style="display: none;">
+            <!-- Logged OUT view - Create Account -->
+            <div id="manage-logged-out">
+                <h1>Create Profile</h1>
+                <div class="profile-form">
+                    <div class="manage-field">
+                        <label>Username:</label>
+                        <input type="text" id="create-username-input" placeholder="Choose a username" maxlength="20">
                     </div>
-                    <input type="file" id="profile-photo-input" accept="image/*" style="display: none;">
-                    <button id="upload-photo-btn">📷 Upload Photo</button>
-                </div>
-                <div class="manage-field">
-                    <label>Username:</label>
-                    <input type="text" id="manage-username-input" placeholder="Username" maxlength="20">
-                </div>
-                <div class="manage-field">
-                    <label>Email:</label>
-                    <span id="manage-email-display"></span>
-                </div>
-                <div class="profile-modal-buttons">
-                    <button id="save-manage-btn">Save Changes</button>
-                    <button id="back-manage-btn">Back</button>
-                </div>
-                <div class="logout-section">
-                    <button id="logout-btn">🚪 Log Out</button>
-                </div>
-                <div class="delete-account-section">
-                    <button id="delete-account-btn">🗑️ Delete Account</button>
-                </div>
-                <div id="delete-confirm" class="delete-confirm hidden">
-                    <p>Are you sure you want to delete your account? This cannot be undone.</p>
+                    <div class="manage-field">
+                        <label>Email:</label>
+                        <input type="email" id="create-email-input" placeholder="Your email">
+                    </div>
+                    <div class="manage-field">
+                        <label>Password:</label>
+                        <input type="password" id="create-password-input" placeholder="Choose a password">
+                    </div>
+                    <div class="manage-field">
+                        <label>Confirm Password:</label>
+                        <input type="password" id="create-password-confirm" placeholder="Confirm password">
+                    </div>
                     <div class="profile-modal-buttons">
-                        <button id="confirm-delete-btn">Yes, Delete</button>
-                        <button id="cancel-delete-btn">Cancel</button>
+                        <button id="create-account-btn">Create Account</button>
+                        <button id="back-create-btn">Back</button>
+                    </div>
+                    <p class="auth-switch">Already have an account? <a href="#" id="go-to-login-from-create">Log In</a></p>
+                </div>
+            </div>
+            
+            <!-- Logged IN view - Manage Profile -->
+            <div id="manage-logged-in" style="display: none;">
+                <h1>Manage Profile</h1>
+                <div class="profile-form">
+                    <div class="profile-photo-section">
+                        <div id="profile-photo-preview">
+                            <span id="profile-photo-placeholder">👤</span>
+                            <img id="profile-photo-img" src="" alt="Profile" style="display: none;">
+                        </div>
+                        <input type="file" id="profile-photo-input" accept="image/*" style="display: none;">
+                        <button id="upload-photo-btn">📷 Upload Photo</button>
+                    </div>
+                    <div class="manage-field">
+                        <label>Username:</label>
+                        <input type="text" id="manage-username-input" placeholder="Username" maxlength="20">
+                    </div>
+                    <div class="manage-field">
+                        <label>Email:</label>
+                        <span id="manage-email-display"></span>
+                    </div>
+                    <div class="profile-modal-buttons">
+                        <button id="save-manage-btn">Save Changes</button>
+                        <button id="back-manage-btn">Back</button>
+                    </div>
+                    <div class="logout-section">
+                        <button id="logout-btn">🚪 Log Out</button>
+                    </div>
+                    <div class="delete-account-section">
+                        <button id="delete-account-btn">🗑️ Delete Account</button>
+                    </div>
+                    <div id="delete-confirm" class="delete-confirm hidden">
+                        <p>Are you sure you want to delete your account? This cannot be undone.</p>
+                        <div class="profile-modal-buttons">
+                            <button id="confirm-delete-btn">Yes, Delete</button>
+                            <button id="cancel-delete-btn">Cancel</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -149,7 +200,212 @@
                     <p><strong>Best Score:</strong> <span id="stats-best-score">0</span></p>
                     <p><strong>Family Members Lost:</strong> <span id="stats-members-lost">0</span></p>
                 </div>
+                
+                <div id="next-reward-container"></div>
+                <div id="reward-roadmap-container"></div>
+                
                 <button id="back-stats-btn">Back</button>
+            </div>
+        </div>
+
+        <div id="settings-screen" class="screen">
+            <h1>⚙️ Settings</h1>
+            <div class="settings-container">
+                <div class="settings-section">
+                    <h3>Display</h3>
+                    <div class="setting-item" id="dark-mode-setting">
+                        <div class="setting-info">
+                            <span class="setting-label">🌙 Dark Mode</span>
+                            <span class="setting-desc" id="dark-mode-desc">Unlocks at Level 5</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="dark-mode-toggle" disabled>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Audio</h3>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-label">🔊 Sound Effects</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="sound-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-label">🎵 Music</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="music-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button id="back-settings-btn">Back</button>
+            </div>
+        </div>
+
+        <div id="car-screen" class="screen">
+            <h1>🚙 My Car</h1>
+            <div class="car-container">
+                <div class="car-tabs">
+                    <button class="car-tab active" data-tab="vehicle">Vehicle</button>
+                    <button class="car-tab" data-tab="customize">Customize</button>
+                </div>
+                
+                <div class="car-tab-content" id="vehicle-tab">
+                    <div class="car-preview">
+                        <div class="car-body" id="car-preview-body">
+                            <div class="car-roof"></div>
+                            <div class="car-windows"></div>
+                            <div class="car-accent" id="car-preview-accent"></div>
+                            <div class="car-wheels">
+                                <div class="wheel"></div>
+                                <div class="wheel"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="car-option-section">
+                        <h3>Choose Your Vehicle</h3>
+                        <div class="car-type-grid" id="car-type-grid"></div>
+                    </div>
+                </div>
+                
+                <div class="car-tab-content hidden" id="customize-tab">
+                    <div class="car-preview">
+                        <div class="car-body" id="car-preview-body-2">
+                            <div class="car-roof"></div>
+                            <div class="car-windows"></div>
+                            <div class="car-accent" id="car-preview-accent-2"></div>
+                            <div class="car-wheels">
+                                <div class="wheel"></div>
+                                <div class="wheel"></div>
+                            </div>
+                        </div>
+                        <div class="license-plate-preview" id="license-plate-preview">
+                            <span class="plate-state">TX</span>
+                            <span class="plate-text">MICH-TRL</span>
+                        </div>
+                    </div>
+                    
+                    <div class="car-option-section">
+                        <h3>Primary Color <span class="unlock-info" id="primary-unlock-info"></span></h3>
+                        <div class="color-grid" id="primary-colors"></div>
+                    </div>
+                    
+                    <div class="car-option-section">
+                        <h3>Secondary Color <span class="unlock-info" id="secondary-unlock-info"></span></h3>
+                        <div class="color-grid" id="secondary-colors"></div>
+                    </div>
+                    
+                    <div class="car-option-section">
+                        <h3>License Plate</h3>
+                        <div class="plate-input-group">
+                            <input type="text" id="plate-text-input" maxlength="8" placeholder="MICH-TRL">
+                        </div>
+                    </div>
+                    
+                    <div class="car-option-section">
+                        <h3>Plate State <span class="unlock-info" id="state-unlock-info"></span></h3>
+                        <div class="state-grid" id="state-grid"></div>
+                    </div>
+                </div>
+                
+                <button id="back-car-btn">Back</button>
+            </div>
+        </div>
+
+        <div id="family-screen" class="screen">
+            <h1>👨‍👩‍👧‍👦 My Family</h1>
+            <div class="family-container">
+                <p class="family-description">Set default names for your family members. These will be pre-filled when starting a new trip.</p>
+                
+                <div class="family-member">
+                    <span class="family-icon">👨</span>
+                    <div class="family-info">
+                        <label>Dad</label>
+                        <input type="text" id="family-dad" maxlength="12" placeholder="Dad">
+                    </div>
+                </div>
+                
+                <div class="family-member">
+                    <span class="family-icon">👩</span>
+                    <div class="family-info">
+                        <label>Mom</label>
+                        <input type="text" id="family-mom" maxlength="12" placeholder="Mom">
+                    </div>
+                </div>
+                
+                <div class="family-member">
+                    <span class="family-icon">👦</span>
+                    <div class="family-info">
+                        <label>Son</label>
+                        <input type="text" id="family-son" maxlength="12" placeholder="Boy">
+                    </div>
+                </div>
+                
+                <div class="family-member">
+                    <span class="family-icon">👧</span>
+                    <div class="family-info">
+                        <label>Daughter</label>
+                        <input type="text" id="family-daughter" maxlength="12" placeholder="Girl">
+                    </div>
+                </div>
+                
+                <div class="family-member">
+                    <span class="family-icon">🐕</span>
+                    <div class="family-info">
+                        <label>Dog</label>
+                        <input type="text" id="family-dog" maxlength="12" placeholder="Buddy">
+                    </div>
+                </div>
+                
+                <div class="family-member dog-breed-section" id="dog-breed-section">
+                    <span class="family-icon">🦴</span>
+                    <div class="family-info">
+                        <label>Dog Breed <span class="unlock-info" id="breed-unlock-info"></span></label>
+                        <input type="text" id="dog-breed-search" placeholder="Search breeds..." list="breed-list">
+                        <datalist id="breed-list"></datalist>
+                        <p class="selected-breed">Selected: <span id="selected-breed">Mixed</span></p>
+                    </div>
+                </div>
+                
+                <button id="save-family-btn">Save Family</button>
+                <button id="back-family-btn">Back</button>
+            </div>
+        </div>
+
+        <div id="challenges-screen" class="screen">
+            <h1>🎯 Daily Challenges</h1>
+            <div class="challenges-container">
+                <div class="challenge-card" id="daily-challenge-card">
+                    <div class="challenge-header">
+                        <h3>Today's Challenge</h3>
+                        <span class="challenge-date" id="challenge-date"></span>
+                    </div>
+                    <div class="challenge-content">
+                        <p class="challenge-text" id="challenge-text">Loading...</p>
+                        <p class="challenge-reward" id="challenge-reward"></p>
+                    </div>
+                    <div class="challenge-status" id="challenge-status">
+                        <span class="status-icon">⏳</span>
+                        <span class="status-text">Not completed</span>
+                    </div>
+                </div>
+                
+                <div class="challenge-info">
+                    <p>Complete daily challenges to earn bonus XP!</p>
+                    <p>Challenges get harder as you level up.</p>
+                </div>
+                
+                <button id="back-challenges-btn">Back</button>
             </div>
         </div>
 
@@ -354,7 +610,11 @@
             <div id="action-panel">
                 <button id="continue-trail">Keep driving</button>
                 <button id="stop-here-btn">Stop here</button>
-                <button id="pace-btn">⚙️ Pace</button>
+                <button id="pace-btn">&#9881; Pace</button>
+                <button id="stereo-toggle-btn">&#127926; Stereo</button>
+            </div>
+            
+            <div id="stereo-panel" class="stereo-panel hidden">
             </div>
 
             <div id="message-log">
@@ -398,8 +658,11 @@
         </div>
     </div>
 
+    <script src="js/imageLoader.js"></script>
     <script src="js/profile.js"></script>
     <script src="js/badges.js"></script>
+    <script src="js/perks.js"></script>
+    <script src="js/stereo.js"></script>
     <script src="js/gameState.js"></script>
     <script src="js/eventSystem.js"></script>
     <script src="js/cityEvents.js"></script>

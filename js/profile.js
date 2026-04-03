@@ -14,15 +14,37 @@ const Profile = {
         friendRequests: [],
         sentRequests: [],
         lastPlayDate: null,
+        lastCompletedDate: null,
         dayStreak: 0,
         weekStreakClaimed: 0,
-        badges: []
+        badges: [],
+        darkMode: false,
+        car: {
+            type: 'minivan',
+            primaryColor: 'white',
+            secondaryColor: 'black',
+            licensePlate: 'MICH-TRL',
+            plateState: 'TX'
+        },
+        family: {
+            dad: 'Dad',
+            mom: 'Mom',
+            son: 'Boy',
+            daughter: 'Girl',
+            dog: 'Buddy',
+            dogBreed: 'mixed'
+        },
+        dailyChallenge: {
+            date: null,
+            challenge: null,
+            completed: false
+        }
     },
     
     allProfiles: [],
     
     levelThresholds: [
-        0,      // Level 1: 0 XP (starting level)
+        0,      // Level 1: 0 XP
         50,     // Level 2: 50 XP
         100,    // Level 3: 100 XP
         200,    // Level 4: 200 XP
@@ -84,10 +106,35 @@ const Profile = {
     load() {
         const saved = localStorage.getItem('michiganTrailProfile');
         if (saved) {
-            this.data = JSON.parse(saved);
+            const loadedData = JSON.parse(saved);
+            // Merge loaded data with defaults to preserve all fields
+            this.data = { ...this.data, ...loadedData };
             if (!this.data.friends) this.data.friends = [];
             if (!this.data.friendRequests) this.data.friendRequests = [];
             if (!this.data.sentRequests) this.data.sentRequests = [];
+            if (!this.data.family) {
+                this.data.family = {
+                    dad: 'Dad',
+                    mom: 'Mom',
+                    son: 'Boy',
+                    daughter: 'Girl',
+                    dog: 'Buddy',
+                    dogBreed: 'mixed'
+                };
+            }
+            if (!this.data.dailyChallenge) {
+                this.data.dailyChallenge = {
+                    date: null,
+                    challenge: null,
+                    completed: false
+                };
+            }
+            // Fix data inconsistency: if username is set and not Guest, mark as registered
+            if (this.data.username && this.data.username !== 'Guest' && !this.data.isRegistered) {
+                this.data.isRegistered = true;
+                this.save();
+            }
+            console.log('Profile loaded, isRegistered:', this.data.isRegistered, 'username:', this.data.username);
         }
         this.loadAllProfiles();
     },
@@ -362,8 +409,60 @@ const Profile = {
         const xpGained = Math.floor(score / 10);
         const leveledUp = this.addXP(xpGained);
         
+        // Update streak on game completion
+        const streakResult = this.updateStreakOnCompletion();
+        
         this.save();
-        return { xpGained, leveledUp, newLevel: this.data.level };
+        return { xpGained, leveledUp, newLevel: this.data.level, streakResult };
+    },
+    
+    updateStreakOnCompletion() {
+        if (!this.data.isRegistered) return { streakBonus: 0, weekStreak: 0, dayStreak: 0 };
+        
+        const today = this.getDateString(new Date());
+        const lastCompletedDate = this.data.lastCompletedDate;
+        
+        let streakBonus = 0;
+        
+        if (!lastCompletedDate) {
+            this.data.dayStreak = 1;
+            this.data.lastCompletedDate = today;
+        } else if (lastCompletedDate === today) {
+            // Already completed a game today, no change to streak
+        } else {
+            const lastDate = new Date(lastCompletedDate);
+            const currentDate = new Date(today);
+            const daysDiff = Math.round((currentDate - lastDate) / (24 * 60 * 60 * 1000));
+            
+            if (daysDiff === 1) {
+                // Consecutive day - increase streak
+                this.data.dayStreak++;
+                this.data.lastCompletedDate = today;
+            } else {
+                // Missed a day - reset streak
+                this.data.dayStreak = 1;
+                this.data.lastCompletedDate = today;
+                this.data.weekStreakClaimed = 0;
+            }
+        }
+        
+        const currentWeekStreak = Math.floor(this.data.dayStreak / 7);
+        
+        if (currentWeekStreak > this.data.weekStreakClaimed) {
+            const newWeeks = currentWeekStreak - this.data.weekStreakClaimed;
+            streakBonus = 200 * newWeeks;
+            this.data.weekStreakClaimed = currentWeekStreak;
+        }
+        
+        this.save();
+        this.updateDisplay();
+        
+        // Check streak badges
+        if (typeof Badges !== 'undefined') {
+            Badges.checkStreakBadges();
+        }
+        
+        return { streakBonus, weekStreak: currentWeekStreak, dayStreak: this.data.dayStreak };
     },
     
     getDateString(date) {
@@ -548,16 +647,20 @@ const Profile = {
     },
     
     updateDisplay() {
-        document.getElementById('profile-name').textContent = this.data.username;
-        
-        const profileLevel = document.querySelector('.profile-level');
-        const profileXP = document.getElementById('profile-xp');
-        const createProfileBtn = document.getElementById('create-profile-btn');
+        const profileLoggedIn = document.getElementById('profile-logged-in');
+        const profileLoggedOut = document.getElementById('profile-logged-out');
+        const manageLoggedIn = document.getElementById('manage-logged-in');
+        const manageLoggedOut = document.getElementById('manage-logged-out');
         
         if (this.data.isRegistered) {
-            if (profileLevel) profileLevel.style.display = 'flex';
-            if (profileXP) profileXP.style.display = 'inline';
-            if (createProfileBtn) createProfileBtn.textContent = '⚙️ Manage Profile';
+            // Show logged-in views
+            if (profileLoggedIn) profileLoggedIn.style.display = 'block';
+            if (profileLoggedOut) profileLoggedOut.style.display = 'none';
+            if (manageLoggedIn) manageLoggedIn.style.display = 'block';
+            if (manageLoggedOut) manageLoggedOut.style.display = 'none';
+            
+            // Update profile info
+            document.getElementById('profile-name').textContent = this.data.username;
             document.getElementById('profile-xp').textContent = `${this.data.totalXP} XP`;
             document.getElementById('profile-level').textContent = this.data.level;
             
@@ -589,9 +692,11 @@ const Profile = {
                 }
             }
         } else {
-            if (profileLevel) profileLevel.style.display = 'none';
-            if (profileXP) profileXP.style.display = 'none';
-            if (createProfileBtn) createProfileBtn.textContent = '👤 Create Profile';
+            // Show logged-out views
+            if (profileLoggedIn) profileLoggedIn.style.display = 'none';
+            if (profileLoggedOut) profileLoggedOut.style.display = 'block';
+            if (manageLoggedIn) manageLoggedIn.style.display = 'none';
+            if (manageLoggedOut) manageLoggedOut.style.display = 'block';
             
             const profileStreak = document.getElementById('profile-streak');
             if (profileStreak) profileStreak.style.display = 'none';
@@ -620,22 +725,6 @@ const Profile = {
             this.showScreen('setup-screen');
         });
         
-        document.getElementById('create-profile-btn').addEventListener('click', () => {
-            if (this.data.isRegistered) {
-                document.getElementById('manage-username-input').value = this.data.username;
-                document.getElementById('manage-email-display').textContent = this.data.email;
-                this.updatePhotoDisplay();
-                document.getElementById('delete-confirm').classList.add('hidden');
-                this.showScreen('manage-profile-screen');
-            } else {
-                document.getElementById('profile-error').style.display = 'none';
-                document.getElementById('profile-username-input').value = '';
-                document.getElementById('profile-email-input').value = '';
-                document.getElementById('profile-password-input').value = '';
-                document.getElementById('profile-password-confirm').value = '';
-                this.showScreen('profile-screen');
-            }
-        });
         
         document.getElementById('save-profile-btn').addEventListener('click', () => {
             const username = document.getElementById('profile-username-input').value.trim();
@@ -658,13 +747,6 @@ const Profile = {
         
         document.getElementById('cancel-profile-btn').addEventListener('click', () => {
             this.showScreen('main-menu');
-        });
-        
-        document.getElementById('view-stats-btn').addEventListener('click', () => {
-            this.updateDisplay();
-            const statsLevel = document.getElementById('stats-level');
-            if (statsLevel) statsLevel.textContent = this.data.level;
-            this.showScreen('stats-screen');
         });
         
         document.getElementById('back-stats-btn').addEventListener('click', () => {
