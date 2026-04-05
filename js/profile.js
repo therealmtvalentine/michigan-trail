@@ -722,7 +722,7 @@ const Profile = {
     
     setupEventListeners() {
         document.getElementById('new-trip-btn').addEventListener('click', () => {
-            this.showScreen('setup-screen');
+            UI.showSetupScreen();
         });
         
         
